@@ -15,13 +15,14 @@ public class Claw extends SubsystemBase {
 
     public Claw(HardwareMap hwMap) {
         clawServo = new SimpleServo(hwMap, "claw", MIN_ANGLE, MAX_ANGLE);
+        clawServo.turnToAngle(55);
     }
     public void open() {
-        clawServo.turnToAngle(MIN_ANGLE);
+        clawServo.turnToAngle(51);
         isOpen = true;
     }
     public void close() {
-        clawServo.turnToAngle(MAX_ANGLE);
+        clawServo.turnToAngle(61);
         isOpen = false;
     }
 

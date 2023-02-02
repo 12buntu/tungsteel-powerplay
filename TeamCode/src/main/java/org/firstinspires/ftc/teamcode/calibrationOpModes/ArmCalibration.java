@@ -19,12 +19,12 @@ public class ArmCalibration extends CommandOpMode {
     public void initialize() {
         GamepadEx gamepad = new GamepadEx(gamepad1);
         Arm arm = new Arm(hardwareMap);
-
         gamepad.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
                 .whenPressed(new InstantCommand(arm::down, arm));
         gamepad.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .whenPressed(new InstantCommand(arm::up, arm));
 
         schedule(new RunCommand(telemetry::update));
+        schedule(new RunCommand(arm::update));
     }
 }

@@ -23,6 +23,7 @@ public class Arm extends SubsystemBase {
 
     public Arm(final HardwareMap hMap) {
         armServo = new SimpleServo(hMap, "top", 72.6, 217.8, AngleUnit.DEGREES); //Calculated from Onshape
+        armServo.turnToAngle(72);
     }
 
     public void update() {
@@ -41,10 +42,10 @@ public class Arm extends SubsystemBase {
         return tY - (RADIUS * Math.sin(Math.toRadians(getAngle())));
     }
     public void up(){
-        armServo.rotateByAngle(30);
+        armServo.rotateByAngle(3);
     }
     public void down(){
-        armServo.rotateByAngle(-30);
+        armServo.rotateByAngle(-3);
     }
     public double getAngle(){
         return armServo.getAngle(AngleUnit.DEGREES);

@@ -17,10 +17,10 @@ import org.firstinspires.ftc.teamcode.util.LiftPosition;
 
 @Config
 public class Lift extends SubsystemBase {
-    public static double KP = .04;
-    public static double KI = 0.0001;
-    public static double KD = 0.0008;
-    public static double KF = 0.0001;
+    public static double KP = .03;
+    public static double KI = 0.008;
+    public static double KD = 0.000;
+    public static double KF = 0.000;
     public static double TE = 5.0;
     public static double TD = 5.0;
 
