@@ -25,7 +25,7 @@ public class Lift extends SubsystemBase {
     public static double TD = 5.0;
 
     private Level level = Level.Floor;
-    private LiftPosition offset = new LiftPosition(0);
+    private final LiftPosition offset = new LiftPosition(0);
     private final MotorGroup motor;
     private final FtcDashboard dashboard = FtcDashboard.getInstance();
     private final Telemetry dashboardTelemetry = dashboard.getTelemetry();
@@ -33,16 +33,11 @@ public class Lift extends SubsystemBase {
     private boolean emergencyStop = false;
     private final LiftPosition MAX_HEIGHT;
 
-    /**
-     * Constructs a Lift with a HardwareMap.
-     * @param hwMap the HardwareMap
-     */
     public Lift(HardwareMap hwMap) {
-        motor = new MotorGroup(
-                new MotorEx(hwMap, "lift0", Motor.GoBILDA.RPM_435),
-                new MotorEx(hwMap, "lift1", Motor.GoBILDA.RPM_435)
-        );
-        motor.setInverted(true);
+        MotorEx motor0 = new MotorEx(hwMap, "lift0", Motor.GoBILDA.RPM_435);
+        MotorEx motor1 = new MotorEx(hwMap, "lift1", Motor.GoBILDA.RPM_435);
+        motor1.setInverted(true);
+        motor = new MotorGroup(motor0, motor1);
         motor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         motor.setRunMode(Motor.RunMode.VelocityControl);
         motor.setVeloCoefficients(KP, KI, KD);
@@ -53,7 +48,7 @@ public class Lift extends SubsystemBase {
         MAX_HEIGHT = new LiftPosition(960);
     }
 
-    private LiftPosition positionAvg() {
+    public LiftPosition positionAvg() {
         return new LiftPosition(
                 LiftPosition.ticksToMm(motor
                         .getPositions()
@@ -67,16 +62,14 @@ public class Lift extends SubsystemBase {
 
     /* **** Commands: **** */
 
-    /**
-     * Should be called in a loop to set the motor power.
-     */
     public void update() {
         sendTelemetry();
         double speedTarget= pidf.calculate(positionAvg().ticks(), level.pos.ticks());
-        if(emergencyStop || pidf.atSetPoint())
+        if (emergencyStop || pidf.atSetPoint()) {
             motor.stopMotor();
-        else
+        } else {
             motor.set(speedTarget);
+        }
         dashboardTelemetry.addData("PIDF calc target", speedTarget);
 
     }
@@ -88,44 +81,26 @@ public class Lift extends SubsystemBase {
         return offset.mm();
     }
 
-    /**
-     * Moves the lift up 1 level (saturating).
-     */
     public void up() {
         setLevel(level.up());
     }
 
-    /**
-     * Moves the lift down 1 level (saturating).
-     */
     public void down() {
         setLevel(level.down());
     }
 
-    /**
-     * Gets the target level.
-     * @return the current target level
-     */
     public Level getLevel() {
         return level;
     }
 
-    /**
-     * An "emergency stop" if tuning makes the lift go crazy
-     * Toggle forces the lift to 0 power
-     */
-    public void toggleStop(){
+    public void toggleStop() {
         emergencyStop = !emergencyStop;
     }
 
-    /**
-     * Set the height of the lift.
-     * @param pos the position to set
-     */
     public void setHeight(@NonNull LiftPosition pos) {
         pidf.setPIDF(KP, KI, KD, KF);
         pidf.setTolerance(TE, TD);
-        //Range.clip protects from inadvertently setting it too high or too low
+        // Range.clip protects from inadvertently setting it too high or too low
         pidf.setSetPoint(Range.clip(pos.ticks() + offset.ticks(),0, MAX_HEIGHT.ticks()));
     }
 
@@ -133,33 +108,23 @@ public class Lift extends SubsystemBase {
         return offset.mm() + level.pos.mm();
     }
 
-    /**
-     * Sets the target level of the lift.
-     * @param level the new level to set
-     */
     public void setLevel(@NonNull Level level) {
         this.level = level;
         setHeight(level.pos);
     }
 
-    /**
-     * Sends telemetry data for tuning/debugging purposes. Can be graphed with FTC Dashboard
-     * which is pretty nifty
-     * The FTC Dashboard address is 192.168.43.1:8080/dash
-     */
-    public void sendTelemetry(){
+    public void sendTelemetry() {
         dashboardTelemetry.addData("Lift Position (mm)", positionAvg().mm());
         dashboardTelemetry.addData("Lift Target (mm)", level.pos.mm());
         dashboardTelemetry.addData("Lift Error(mm)", positionAvg().mm()-level.pos.mm());
-        dashboardTelemetry.addData("Lift Velocity", motor.getVelocity()); //Ticks/second?
+        dashboardTelemetry.addData("Lift Velocity", motor.getVelocity()); // Ticks/second?
         dashboardTelemetry.update();
     }
 
     public enum Level {
         Floor(0.0),
-        Short(250.0), //TODO: tune these to actual positions, in MILLIMETERS
-        Medium(500.0),
-        Long(960.0);
+        Short(250.0), // TODO: tune these to actual positions, in MILLIMETERS
+        Medium(500.0);
 
         public final LiftPosition pos;
 
@@ -172,10 +137,8 @@ public class Lift extends SubsystemBase {
                 case Floor:
                     return Short;
                 case Short:
-                    return Medium;
                 case Medium:
-                case Long:
-                    return Long;
+                    return Medium;
                 default: // unreachable
                     return Floor;
             }
@@ -188,10 +151,8 @@ public class Lift extends SubsystemBase {
                     return Floor;
                 case Medium:
                     return Short;
-                case Long:
-                    return Medium;
                 default: // unreachable
-                    return Long;
+                    return Medium;
             }
         }
     }
